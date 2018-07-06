@@ -15,7 +15,7 @@
     },
 
     "printCommands": true,
-    "printConfig": true,
+    "printConfig": false,
 
     "bashCommands": true,
     "vsCommands": true,

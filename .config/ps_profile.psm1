@@ -1,3 +1,6 @@
+# Path to the configuration file
+$configPath = "$($env:tools)\windows-env\.config\powershell.json";
+
 class Shauntc {
 	# Class Variables and Methods
 	static [string] $fg_white = "37";
@@ -62,7 +65,6 @@ class Shauntc {
 		if($($config.PSobject.Properties.name -Match "convenienceCommands")) { $this.UseConvenienceCommands = $config.convenienceCommands;  }
 		if($($config.PSobject.Properties.name -Match "vsCommands")) { $this.UseVisualStudioCommands = $config.vsCommands;  }
 		if($($config.PSobject.Properties.name -Match "prompt")) {
-			Write-Host "Prompt: " + $config.prompt
 			if($($config.prompt.PSobject.Properties.name -Match "admin")) { $this.PromptConfig.Admin = $config.prompt.admin;  }
 			if($($config.prompt.PSobject.Properties.name -Match "time")) { $this.PromptConfig.Time = $config.prompt.time;  }
 			if($($config.prompt.PSobject.Properties.name -Match "git")) { $this.PromptConfig.Git = $config.prompt.git;  }
@@ -170,7 +172,7 @@ class Shauntc {
 	}
 }
 
-$configPath = "$env:tools\.config\powershell.json";
+# $configPath defined at the top of the file
 $config = Get-Content -Raw -Path $configPath | ConvertFrom-Json;
 $shauntc = [Shauntc]::new($config);
 
