@@ -1,6 +1,3 @@
-# Path to the configuration file
-$configPath = "$($env:tools)\windows-env\.config\powershell.json";
-
 class Shauntc {
 	# Class Variables and Methods
 	static [string] $fg_white = "37";
@@ -49,7 +46,7 @@ class Shauntc {
 	$config;
 
 	Shauntc($config) {
-		$this.ParseConfig($config);
+		if($config) { $this.ParseConfig($config); }
 		$this.IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator");
 		$this.Functions = @();
 	}
@@ -172,9 +169,16 @@ class Shauntc {
 	}
 }
 
-# $configPath defined at the top of the file
-$config = Get-Content -Raw -Path $configPath | ConvertFrom-Json;
+# Path to the configuration file
+$configPath = Resolve-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\psconfig.json";
+$config;
+if(Test-Path($configPath)) {
+	$config = Get-Content -Raw -Path $configPath | ConvertFrom-Json;	
+} else {
+	Write-Host "Unable to find config at $configPath"
+}
 $shauntc = [Shauntc]::new($config);
+
 
 if($shauntc.UsePrompt) {
 	function Prompt {
