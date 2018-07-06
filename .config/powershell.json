@@ -1,0 +1,23 @@
+{
+    "name": "shauntc",
+
+    "historyLength": 10000,
+    "usePrompt": true,
+    "prompt": {
+        "git": true,
+        "time": true,
+        "admin": true
+    },
+    "keyBindings": {
+        "UpArrow": "HistorySearchBackward",
+        "DownArrow": "HistorySearchForward",
+        "Tab": "MenuComplete"
+    },
+
+    "printCommands": true,
+    "printConfig": true,
+
+    "bashCommands": true,
+    "vsCommands": true,
+    "convenienceCommands": false
+}
