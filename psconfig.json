@@ -13,11 +13,14 @@
         "DownArrow": "HistorySearchForward",
         "Tab": "MenuComplete"
     },
+    "functionAlias": {
+        "home": "cd $env:USERPROFILE"
+    },
 
     "printCommands": true,
     "printConfig": false,
 
     "bashCommands": true,
     "vsCommands": true,
-    "convenienceCommands": false
+    "convenienceCommands": true
 }

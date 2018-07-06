@@ -1,3 +1,7 @@
+param(
+    [parameter(Position=0,Mandatory=$false)][string]$ConfigFile=$(Resolve-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\psconfig.json")
+)
+
 class Shauntc {
 	# Class Variables and Methods
 	static [string] $fg_white = "37";
@@ -42,6 +46,8 @@ class Shauntc {
         DownArrow = "HistorySearchForward";
         Tab = "MenuComplete";
 	};
+
+	[hashtable] $FunctionAlias = @{}
 	
 	$config;
 
@@ -69,6 +75,11 @@ class Shauntc {
 		if($($config.PSobject.Properties.name -Match "keyBindings")) { 
 			foreach ( $key in $($config.keyBindings | Get-Member -MemberType Properties).Name ) {
 				$this.KeyHandlers[$key] = $config.keyBindings.$key;
+			}
+		}
+		if($($config.PSobject.Properties.name -Match "functionAlias")) { 
+			foreach ( $key in $($config.functionAlias | Get-Member -MemberType Properties).Name ) {
+				$this.FunctionAlias[$key] = $config.functionAlias.$key;
 			}
 		}
 	}
@@ -100,6 +111,7 @@ class Shauntc {
 		$this.Functions += $function;
 	}
 	[string] GetFunctionString() {
+		[array]::sort($this.Functions);
 		$message = "";
 		$bufferSize = [console]::BufferWidth;
 		$stringBuffer = "  $([Shauntc]::name) Module Commands: ";
@@ -169,15 +181,42 @@ class Shauntc {
 	}
 }
 
-# Path to the configuration file
-$configPath = Resolve-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\psconfig.json";
 $config;
-if(Test-Path($configPath)) {
-	$config = Get-Content -Raw -Path $configPath | ConvertFrom-Json;	
+if(Test-Path($ConfigFile)) {
+	$config = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json;	
 } else {
-	Write-Host "Unable to find config at $configPath"
+	Write-Host "Unable to find config at $ConfigFile"
 }
 $shauntc = [Shauntc]::new($config);
+
+if($shauntc.FunctionAlias.Count -ne 0) {
+	$scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.Path);
+	$genPath = "$scriptPath\gen"
+	if(-Not(Test-Path($genPath))) {
+		mkdir $genPath;
+	}
+	$fnFileName = "_customFunctions.psm1";
+	$fnFilePath = "$genPath\$fnFileName";
+	if(Test-Path($fnFilePath)) {
+		Remove-Item $fnFilePath; # Ensure we create a new file each time
+	}
+	New-Item -Path $genPath -Name $fnFileName  -ItemType "file"
+	foreach ($key in $shauntc.FunctionAlias.Keys ) {
+		if(Get-Command $key -errorAction SilentlyContinue) {
+			Write-Host "Command '$key' already exists, please choose another name";
+		} else {
+			$value = $shauntc.FunctionAlias.Item($key);
+			$functionDefn = "function $key {`n`t$value @args;`n}`n";
+			Out-File -FilePath $fnFilePath -InputObject $functionDefn -Append;
+			$shauntc.AddFunction($key);
+		}
+	}
+	Import-Module $fnFilePath
+
+	#clean up the generated file/folder after importing the functions
+	Remove-Item $fnFilePath
+	Remove-Item $genPath
+}
 
 
 if($shauntc.UsePrompt) {
@@ -387,3 +426,6 @@ if($shauntc.UseBashCommands) {
 
 $shauntc.AddFunction($(Get-Command -Module ps_profile));
 Write-Host $shauntc.GetInitMessage();
+
+$profile_config = $ConfigFile;
+Export-ModuleMember -Function * -Variable profile_config
