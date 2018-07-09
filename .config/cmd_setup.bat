@@ -1,5 +1,5 @@
 @echo off
-:: This only runs when launched from tools/shortcuts 
+:: This only runs when launched from %tools%/windows-env/shortcuts 
 echo|set /p="[107;30m Cmd [0m"
 net session >nul 2>&1
 if %errorLevel% == 0 (

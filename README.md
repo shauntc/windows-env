@@ -6,7 +6,7 @@
 [windows-dev-env]: https://github.com/felixrieseberg/windows-development-environment
 
 # windows-env
-Windows Environment set-up for a dev coming from MacOS, extension of [felixrieseberg's][windows-dev-env]
+Windows Development Environment set-up for a dev coming from MacOS, extension to [felixrieseberg's][windows-dev-env]
 
 install [Chocolatey][chocolatey-install]
 
@@ -17,6 +17,7 @@ install [VSCode][vscode-install] and [Visual Studios][vs-install]
 
 ### PS/CMD Shortcuts for Wox:
 **/shortcuts** contains shortcuts for cmd/ps and launching as admin (a_cmd/a_ps) as well as getting into the visual studio cmd prompt
+<br/>Add 'tools' env variable and put windows-env folder at %tools%\windows-env ( I just made this C:\tools)
 <br/>Wox -> Settings -> Plugin -> Program -> Add ( windows-env\shortcuts )
 
 ### Powershell Config:
