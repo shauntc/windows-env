@@ -2,7 +2,7 @@ param(
     [parameter(Position=0,Mandatory=$false)][string]$ConfigFile=$(Resolve-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\psconfig.json")
 )
 
-class Shauntc {
+class Shauntc { # This class is pointless and really should be broken up
 	# Class Variables and Methods
 	static [string] $fg_white = "37";
 	static [string] $fg_red = "31";
@@ -188,35 +188,6 @@ if(Test-Path($ConfigFile)) {
 	Write-Host "Unable to find config at $ConfigFile"
 }
 $shauntc = [Shauntc]::new($config);
-
-if($shauntc.FunctionAlias.Count -ne 0) {
-	$scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.Path);
-	$genPath = "$scriptPath\gen"
-	if(-Not(Test-Path($genPath))) {
-		mkdir $genPath;
-	}
-	$fnFileName = "_customFunctions.psm1";
-	$fnFilePath = "$genPath\$fnFileName";
-	if(Test-Path($fnFilePath)) {
-		Remove-Item $fnFilePath; # Ensure we create a new file each time
-	}
-	New-Item -Path $genPath -Name $fnFileName  -ItemType "file"
-	foreach ($key in $shauntc.FunctionAlias.Keys ) {
-		if(Get-Command $key -errorAction SilentlyContinue) {
-			Write-Host "Command '$key' already exists, please choose another name";
-		} else {
-			$value = $shauntc.FunctionAlias.Item($key);
-			$functionDefn = "function $key {`n`t$value @args;`n}`n";
-			Out-File -FilePath $fnFilePath -InputObject $functionDefn -Append;
-			$shauntc.AddFunction($key);
-		}
-	}
-	Import-Module $fnFilePath
-
-	#clean up the generated file/folder after importing the functions
-	Remove-Item $fnFilePath
-	Remove-Item $genPath
-}
 
 
 if($shauntc.UsePrompt) {
@@ -422,6 +393,36 @@ if($shauntc.UseBashCommands) {
 		New-Item -Force -ItemType directory -Path $dirname
 		expand-archive $file -OutputPath $dirname -ShowProgress
 	}
+}
+
+# Custom functions are defined last to ensure no name clashing ones are created
+if($shauntc.FunctionAlias.Count -ne 0) {
+	$scriptPath = $(Split-Path -Parent $MyInvocation.MyCommand.Path);
+	$genPath = "$scriptPath\gen"
+	if(-Not(Test-Path($genPath))) {
+		mkdir $genPath;
+	}
+	$fnFileName = "_customFunctions.psm1";
+	$fnFilePath = "$genPath\$fnFileName";
+	if(Test-Path($fnFilePath)) {
+		Remove-Item $fnFilePath; # Ensure we create a new file each time
+	}
+	New-Item -Path $genPath -Name $fnFileName  -ItemType "file"
+	foreach ($key in $shauntc.FunctionAlias.Keys ) {
+		if(Get-Command $key -errorAction SilentlyContinue) {
+			Write-Host "Command '$key' already exists, please choose another name";
+		} else {
+			$value = $shauntc.FunctionAlias.Item($key);
+			$functionDefn = "function $key {`n`t$value @args;`n}`n";
+			Out-File -FilePath $fnFilePath -InputObject $functionDefn -Append;
+			$shauntc.AddFunction($key);
+		}
+	}
+	Import-Module $fnFilePath
+
+	#clean up the generated file/folder after importing the functions
+	Remove-Item $fnFilePath
+	Remove-Item $genPath
 }
 
 $shauntc.AddFunction($(Get-Command -Module ps_profile));
