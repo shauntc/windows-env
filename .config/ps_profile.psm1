@@ -218,6 +218,13 @@ if($shauntc.UseVisualStudioCommands) {
 		function vs {
 			& "${VisualStudioPath}\Common7\IDE\devenv.exe" @args
 		}
+
+		function avs {
+			$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
+			$newProcess.Arguments = Resolve-Path $args;
+			$newProcess.Verb = "runas";
+			[System.Diagnostics.Process]::Start($newProcess);
+		}
 		
 		function vscmd {
 			$vsBatPath = "${VisualStudioPath}\Common7\Tools\VsDevCmd.bat"
