@@ -216,10 +216,17 @@ if($shauntc.UseVisualStudioCommands) {
 	$VisualStudioPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\Enterprise";
 	if(Test-Path($VisualStudioPath)) {
 		function vs {
-			& "${VisualStudioPath}\Common7\IDE\devenv.exe" @args
+			if ($args[0] -eq '.') {
+				$args[0] = '*.sln'
+			}
+			$slnPath = Resolve-Path $args;
+			& "${VisualStudioPath}\Common7\IDE\devenv.exe" $slnPath;
 		}
 
 		function avs {
+			if ($args[0] -eq '.') {
+				$args[0] = '*.sln'
+			}
 			$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
 			$newProcess.Arguments = Resolve-Path $args;
 			$newProcess.Verb = "runas";
