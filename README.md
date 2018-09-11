@@ -72,7 +72,7 @@ edit windows-env/psconfig.json to change the powershell profile settings
 
     // Enables/Disables sets of commands
     "bashCommands": true, // bash like commands
-    "vsCommands": true, // vs, vscmd
+    "vsCommands": true, // vs, avs, vscmd
     "convenienceCommands": true // .., ..., get-path, etc
 }
 ```
