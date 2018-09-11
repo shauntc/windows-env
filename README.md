@@ -33,7 +33,7 @@ if (Test-Path($ProfileModule)) { # Test if it exists
   # Add: '-ArgumentList {path to psconfig}' if you want a custom psconfig location
   Import-Module "$ProfileModule" -DisableNameChecking
 } else { # Warn if fails to load
-	Write-Host "Failed to load profile module from $ProfileModule" -BackgroundColor Red;
+  Write-Host "Failed to load profile module from $ProfileModule" -BackgroundColor Red;
 }
 ```
 
@@ -41,39 +41,39 @@ edit windows-env/psconfig.json to change the powershell profile settings
 
 ```javascript
 {
-    "name": "shauntc", // Profile name (doesnt really do anything, just printed at the begining)
-    "historyLength": 10000,
-    "usePrompt": true, // Use the custom prompt
-    "prompt": {
-        "git": true, // Show status of git repos in the prompt
-        "time": true, // Show timestamps in the prompt
-        "admin": true // Show if prompt is in admin mode or user mode
-    },
-    "keyBindings": { 
-        // List of powershell keybindings
-        // These are my reccomended ones
-        "UpArrow": "HistorySearchBackward",
-        "DownArrow": "HistorySearchForward",
-        "Tab": "MenuComplete"
-    },
-    "functionAlias": {
-        // Function bindings
-        // These will fail if they clash with currently available commands
-        // ie. this will not rebind cd, it will just skip it
-        // Currently these can only be one line functions
-        // function inputs will be passed at the end of the command
-        // ie calling 'home -Verbose' => 'cd $env:USERPROFILE -Verbose' 
-        "home": "cd $env:USERPROFILE"
-    },
+  "name": "shauntc", // Profile name (doesnt really do anything, just printed at the begining)
+  "historyLength": 10000,
+  "usePrompt": true, // Use the custom prompt
+  "prompt": {
+    "git": true, // Show status of git repos in the prompt
+    "time": true, // Show timestamps in the prompt
+    "admin": true // Show if prompt is in admin mode or user mode
+  },
+  "keyBindings": { 
+    // List of powershell keybindings
+    // These are my reccomended ones
+    "UpArrow": "HistorySearchBackward",
+    "DownArrow": "HistorySearchForward",
+    "Tab": "MenuComplete"
+  },
+  "functionAlias": {
+    // Function bindings
+    // These will fail if they clash with currently available commands
+    // ie. this will not rebind cd, it will just skip it
+    // Currently these can only be one line functions
+    // function inputs will be passed at the end of the command
+    // ie calling 'home -Verbose' => 'cd $env:USERPROFILE -Verbose' 
+    "home": "cd $env:USERPROFILE"
+  },
 
-    // Print a list of the commands added by this profile
-    // I prefer to have this on so I know what I'm using that is not stock
-    "printCommands": true, 
+  // Print a list of the commands added by this profile
+  // I prefer to have this on so I know what I'm using that is not stock
+  "printCommands": true, 
 
-    // Enables/Disables sets of commands
-    "bashCommands": true, // bash like commands
-    "vsCommands": true, // vs, avs, vscmd
-    "convenienceCommands": true // .., ..., get-path, etc
+  // Enables/Disables sets of commands
+  "bashCommands": true, // bash like commands
+  "vsCommands": true, // vs, avs, vscmd
+  "convenienceCommands": true // .., ..., get-path, etc
 }
 ```
 For a list of possible keybindings see [Set-PSReadlineKeyHandler][ps-keyhandlers]
