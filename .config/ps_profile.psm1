@@ -2,6 +2,21 @@ param(
     [parameter(Position=0,Mandatory=$false)][string]$ConfigFile=$(Resolve-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\psconfig.json")
 )
 
+$CmdColors = @{
+	fg = @{
+		white = "37"
+		red = "31"
+		green = "32"
+		blue = "34"
+		grey = "90"
+	}
+	bg = @{
+		green = "42"
+		red = "41"
+		blue = "44"
+	}
+}
+
 class Shauntc { # This class is pointless and really should be broken up
 	# Class Variables and Methods
 	static [string] $fg_white = "37";
@@ -216,21 +231,75 @@ if($shauntc.UseVisualStudioCommands) {
 	$VisualStudioPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\Enterprise";
 	if(Test-Path($VisualStudioPath)) {
 		function vs {
-			if ($args[0] -eq '.') {
-				$args[0] = '*.sln'
+			Param(
+				[parameter(
+					Position = 0,
+					ParameterSetName = "Solution"
+				)]
+				[String] $SolutionPath,
+				[parameter(
+					ValueFromRemainingArguments = $true
+				)]
+				[String[]]
+				$RemainingArgs
+			)
+
+			if($SolutionPath) {
+				$inputPath = $SolutionPath;
+				if ($SolutionPath -eq '.') {
+					$SolutionPath = '*.sln'
+				}
+				$SolutionPath = Resolve-Path $SolutionPath
+
+				if([System.IO.File]::Exists($SolutionPath)) {
+					Write-Host "Visual Studio opening $SolutionPath with args $RemainingArgs";
+					& "${VisualStudioPath}\Common7\IDE\devenv.exe" $SolutionPath $RemainingArgs;
+				} else {
+					Write-Host "Error: No Solution found for path: $inputPath" -BackgroundColor Red;
+				}
+			} else {
+				Write-Host "Open Visual Studio $RemainingArgs";
+				& "${VisualStudioPath}\Common7\IDE\devenv.exe" $RemainingArgs;
 			}
-			$slnPath = Resolve-Path $args;
-			& "${VisualStudioPath}\Common7\IDE\devenv.exe" $slnPath;
 		}
 
 		function avs {
-			if ($args[0] -eq '.') {
-				$args[0] = '*.sln'
+			Param(
+				[parameter(
+					Position = 0,
+					ParameterSetName = "Solution"
+				)]
+				[String] $SolutionPath,
+				[parameter(
+					ValueFromRemainingArguments = $true
+				)]
+				[String[]]
+				$RemainingArgs
+			)
+
+			if($SolutionPath) {
+				$inputPath = $SolutionPath;
+				if ($SolutionPath -eq '.') {
+					$SolutionPath = '*.sln'
+				}
+				$SolutionPath = Resolve-Path $SolutionPath
+
+				if([System.IO.File]::Exists($SolutionPath)) {
+					Write-Host "Visual Studio opening $SolutionPath $RemainingArgs";
+					$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
+					$newProcess.Arguments = $RemainingArgs;
+					$newProcess.Verb = "runas";
+					[System.Diagnostics.Process]::Start($newProcess);
+				} else {
+					Write-Host "Error: No Solution found for path: $inputPath" -BackgroundColor Red;
+				}
+			} else {
+				Write-Host "Open Visual Studio $RemainingArgs";
+				$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
+				$newProcess.Arguments = $RemainingArgs;
+				$newProcess.Verb = "runas";
+				[System.Diagnostics.Process]::Start($newProcess);
 			}
-			$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
-			$newProcess.Arguments = Resolve-Path $args;
-			$newProcess.Verb = "runas";
-			[System.Diagnostics.Process]::Start($newProcess);
 		}
 		
 		function vscmd {
