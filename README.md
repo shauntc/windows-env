@@ -1,10 +1,3 @@
-[chocolatey-install]: https://chocolatey.org/
-[wox-install]: https://github.com/Wox-launcher/Wox
-[vscode-install]: https://visualstudio.microsoft.com/
-[vs-install]: https://visualstudio.microsoft.com/
-[ps-keyhandlers]: https://docs.microsoft.com/en-us/powershell/module/psreadline/set-psreadlinekeyhandler?view=powershell-6
-[windows-dev-env]: https://github.com/felixrieseberg/windows-development-environment
-
 # windows-env
 Windows Development Environment set-up for a dev coming from MacOS, extension to [felixrieseberg's][windows-dev-env]
 
@@ -48,8 +41,7 @@ edit windows-env/psconfig.json to change the powershell profile settings
 
 ```javascript
 {
-    "name": "shauntc", // Profile name (doesnt really do anything)
-
+    "name": "shauntc", // Profile name (doesnt really do anything, just printed at the begining)
     "historyLength": 10000,
     "usePrompt": true, // Use the custom prompt
     "prompt": {
@@ -59,6 +51,7 @@ edit windows-env/psconfig.json to change the powershell profile settings
     },
     "keyBindings": { 
         // List of powershell keybindings
+        // These are my reccomended ones
         "UpArrow": "HistorySearchBackward",
         "DownArrow": "HistorySearchForward",
         "Tab": "MenuComplete"
@@ -84,3 +77,12 @@ edit windows-env/psconfig.json to change the powershell profile settings
 }
 ```
 For a list of possible keybindings see [Set-PSReadlineKeyHandler][ps-keyhandlers]
+
+<!--External Links--->
+
+[chocolatey-install]: https://chocolatey.org/
+[wox-install]: https://github.com/Wox-launcher/Wox
+[vscode-install]: https://visualstudio.microsoft.com/
+[vs-install]: https://visualstudio.microsoft.com/
+[ps-keyhandlers]: https://docs.microsoft.com/en-us/powershell/module/psreadline/set-psreadlinekeyhandler?view=powershell-6
+[windows-dev-env]: https://github.com/felixrieseberg/windows-development-environment
