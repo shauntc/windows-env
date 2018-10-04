@@ -24,6 +24,7 @@ class Shauntc { # This class is pointless and really should be broken up
 	static [string] $fg_green = "32";
 	static [string] $fg_blue = "34";
 	static [string] $fg_grey = "90";
+	static [string] $fg_yellow = "33";
 
 	static [string] $bg_green = "42";
 	static [string] $bg_red = "41";
@@ -63,7 +64,7 @@ class Shauntc { # This class is pointless and really should be broken up
 	};
 
 	[hashtable] $FunctionAlias = @{}
-	
+
 	$config;
 
 	Shauntc($config) {
@@ -87,12 +88,12 @@ class Shauntc { # This class is pointless and really should be broken up
 			if($($config.prompt.PSobject.Properties.name -Match "time")) { $this.PromptConfig.Time = $config.prompt.time;  }
 			if($($config.prompt.PSobject.Properties.name -Match "git")) { $this.PromptConfig.Git = $config.prompt.git;  }
 		}
-		if($($config.PSobject.Properties.name -Match "keyBindings")) { 
+		if($($config.PSobject.Properties.name -Match "keyBindings")) {
 			foreach ( $key in $($config.keyBindings | Get-Member -MemberType Properties).Name ) {
 				$this.KeyHandlers[$key] = $config.keyBindings.$key;
 			}
 		}
-		if($($config.PSobject.Properties.name -Match "functionAlias")) { 
+		if($($config.PSobject.Properties.name -Match "functionAlias")) {
 			foreach ( $key in $($config.functionAlias | Get-Member -MemberType Properties).Name ) {
 				$this.FunctionAlias[$key] = $config.functionAlias.$key;
 			}
@@ -109,11 +110,11 @@ class Shauntc { # This class is pointless and really should be broken up
 
 		if($this.PrintConfig) {
 			$initMessage += "`n";
-			$initMessage += $this.GetConfigString();	
+			$initMessage += $this.GetConfigString();
 		}
 		if($this.PrintCommands) {
 			$initMessage += "`n";
-			$initMessage += $this.GetFunctionString();	
+			$initMessage += $this.GetFunctionString();
 		}
 		return $initMessage;
 	}
@@ -156,25 +157,37 @@ class Shauntc { # This class is pointless and really should be broken up
 	}
 
 	[string] PromptGit() {
-		$gitBranch = $(git symbolic-ref --short HEAD);
-		if($gitBranch) {
-			$gitString = "";
+		$isGitRepo = $(git rev-parse --is-inside-work-tree);
+		if($isGitRepo) {
+			$gitString = "[";
+
+			$gitBranch = $(git symbolic-ref --short HEAD);
 			$gitStatus = $(git status --porcelain);
-			if($gitStatus) {
-				$gitString += "[" + [Shauntc]::GetStyledString("*" + $gitBranch, @([Shauntc]::fg_red)) + "]";
+
+			if($gitBranch -and $gitStatus) {
+				$gitString += [Shauntc]::GetStyledString("*" + $gitBranch, @([Shauntc]::fg_red));
 			} elseif ($gitBranch) {
-				$gitString = "[" + [Shauntc]::GetStyledString($gitBranch, @([Shauntc]::fg_green)) + "]";
+				$gitString += [Shauntc]::GetStyledString($gitBranch, @([Shauntc]::fg_green));
+			} else {
+				$gitRoot = $(git rev-parse --show-toplevel);
+
+				if (Test-Path ($gitRoot + "\.git\rebase-apply")) {
+					$gitString += [Shauntc]::GetStyledString("rebase in progress", @([Shauntc]::fg_yellow));
+				} else {
+					$gitString += [Shauntc]::GetStyledString("--unknown--", @([Shauntc]::bg_red));
+				}
 			}
-			return $gitString;
+
+			return $gitString + "]";
 		} else {
-			return ""
+			return "";
 		}
 	}
 
 	[string] PromptTimestamp() {
 		return [Shauntc]::GetStyledString("[$(Get-Date -UFormat "%T")]", @([Shauntc]::fg_grey));
 	}
-	
+
 	[string] PromptLocation() {
 		return "$(Get-Location)"
 	}
@@ -198,7 +211,7 @@ class Shauntc { # This class is pointless and really should be broken up
 
 $config;
 if(Test-Path($ConfigFile)) {
-	$config = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json;	
+	$config = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json;
 } else {
 	Write-Host "Unable to find config at $ConfigFile"
 }
@@ -301,7 +314,7 @@ if($shauntc.UseVisualStudioCommands) {
 				[System.Diagnostics.Process]::Start($newProcess);
 			}
 		}
-		
+
 		function vscmd {
 			$vsBatPath = "${VisualStudioPath}\Common7\Tools\VsDevCmd.bat"
 			if([System.IO.File]::Exists($vsBatPath)) {
@@ -318,7 +331,7 @@ if($shauntc.UseVisualStudioCommands) {
 				}
 			} else {
 				Write-Output "VS Dev Batch file does not exist at: $vsBatPath"
-			}	
+			}
 		}
 	}
 }
@@ -338,19 +351,19 @@ if($shauntc.UseConvenienceCommands) {
 	function ..... {
 		Set-Location ..\..\..\..
 	}
-	
+
 	function uptime { # From https://github.com/felixrieseberg/windows-development-environment
 		Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
 		EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
 	}
-	
+
 	function find-file($name) { # From https://github.com/felixrieseberg/windows-development-environment
 		Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object {
 			$place_path = $_.directory
 			Write-Output "${place_path}\${_}"
 		}
 	}
-	
+
 	function get-path { # From https://github.com/felixrieseberg/windows-development-environment
 		($Env:Path).Split(";")
 	}
