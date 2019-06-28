@@ -367,6 +367,10 @@ if($shauntc.UseConvenienceCommands) {
 	function get-path { # From https://github.com/felixrieseberg/windows-development-environment
 		($Env:Path).Split(";")
 	}
+
+	function cwd {
+		(Get-Location).Path | clip
+	}
 }
 
 # Bash like commands all from https://github.com/felixrieseberg/windows-development-environment
