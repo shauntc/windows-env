@@ -241,8 +241,16 @@ foreach ($key in $shauntc.KeyHandlers.Keys ) {
 # Visual Studio Functions
 #######################################################
 if($shauntc.UseVisualStudioCommands) {
-	$VisualStudioPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\Enterprise";
-	if(Test-Path($VisualStudioPath)) {
+	$vsYears = 2019, 2017;
+	$VisualStudioPath;
+	foreach($vsYear in $vsYears) {
+		$vsPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\$vsYear\Enterprise";
+		if (Test-Path($vsPath)) {
+			$VisualStudioPath = $vsPath;
+			break;
+		}
+	}
+	if($VisualStudioPath) {
 		function vs {
 			Param(
 				[parameter(
@@ -259,8 +267,8 @@ if($shauntc.UseVisualStudioCommands) {
 
 			if($SolutionPath) {
 				$inputPath = $SolutionPath;
-				if ($SolutionPath -eq '.') {
-					$SolutionPath = '*.sln'
+				if (-not $SolutionPath.EndsWith('.sln')) {
+					$SolutionPath = "$SolutionPath\*.sln"
 				}
 				$SolutionPath = Resolve-Path $SolutionPath
 
@@ -292,15 +300,14 @@ if($shauntc.UseVisualStudioCommands) {
 
 			if($SolutionPath) {
 				$inputPath = $SolutionPath;
-				if ($SolutionPath -eq '.') {
-					$SolutionPath = '*.sln'
+				if (-not $SolutionPath.EndsWith('.sln')) {
+					$SolutionPath = "$SolutionPath\*.sln"
 				}
 				$SolutionPath = Resolve-Path $SolutionPath
 
 				if([System.IO.File]::Exists($SolutionPath)) {
 					Write-Host "Visual Studio opening $SolutionPath $RemainingArgs";
-					$newProcess = new-object System.Diagnostics.ProcessStartInfo "${VisualStudioPath}\Common7\IDE\devenv.exe";
-					$newProcess.Arguments = $RemainingArgs;
+					$newProcess = new-object System.Diagnostics.ProcessStartInfo("${VisualStudioPath}\Common7\IDE\devenv.exe", "`"$SolutionPath`" $RemainingArgs");
 					$newProcess.Verb = "runas";
 					[System.Diagnostics.Process]::Start($newProcess);
 				} else {
@@ -339,19 +346,6 @@ if($shauntc.UseVisualStudioCommands) {
 # Convenience Functions
 #######################################################
 if($shauntc.UseConvenienceCommands) {
-	function .. {
-		Set-Location ..
-	}
-	function ... {
-		Set-Location ..\..
-	}
-	function .... {
-		Set-Location ..\..\..
-	}
-	function ..... {
-		Set-Location ..\..\..\..
-	}
-
 	function uptime { # From https://github.com/felixrieseberg/windows-development-environment
 		Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
 		EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
@@ -525,8 +519,29 @@ if($shauntc.FunctionAlias.Count -ne 0) {
 	Remove-Item $genPath
 }
 
+$ExecutionContext.InvokeCommand.CommandNotFoundAction = {
+	param($Name,[System.Management.Automation.CommandLookupEventArgs]$CommandLookupArgs)
+
+	# Check if command was directly invoked by user
+	# For a command invoked by a running script, CommandOrigin would be `Internal`
+	if($CommandLookupArgs.CommandOrigin -eq 'Runspace'){
+		# Assign a new action scriptblock, close over $Name from this scope
+		$CommandLookupArgs.CommandScriptBlock = {
+			if (Test-Path($Name)) {
+				Set-Location $Name;
+			}  elseif ($Name -cmatch "^get-\.\.+$") {
+				$num = ($Name -replace "get-").Length - 1;
+				$directory = [System.String]::Join("/", @("..") * $num)
+				Set-Location $directory
+			} else {
+				Write-Warning "'$Name' isn't a cmdlet, function, script file, file path, or operable program.";
+			}
+		}.GetNewClosure()
+	}
+}
+
 $shauntc.AddFunction($(Get-Command -Module ps_profile));
 Write-Host $shauntc.GetInitMessage();
 
-$profile_config = $ConfigFile;
+$env:config = $ConfigFile;
 Export-ModuleMember -Function * -Variable profile_config
