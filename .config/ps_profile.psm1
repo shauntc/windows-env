@@ -220,6 +220,9 @@ $shauntc = [Shauntc]::new($config);
 
 if($shauntc.UsePrompt) {
 	function Prompt {
+		try {
+			$host.ui.RawUI.WindowTitle = "PS $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) $(Get-Location)";
+		} catch {}
 		return $shauntc.GetPromptString($NestedPromptLevel);
 	}
 }
